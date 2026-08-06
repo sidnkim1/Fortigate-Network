@@ -77,16 +77,22 @@ ip http server
 ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
 ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
 
+!
 ! Console Access
+!
 
 line con 0
  logging synchronous
  login local
 
+!
 ! Remote Access
+!
 
 line vty 0 4
  logging synchronous
  login local
 
+!
 ! End
+!
