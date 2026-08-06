@@ -71,9 +71,7 @@ The design includes:
 
 # Topology
 
-See:
-
-/diagrams/topology.png
+<img width="1037" height="837" alt="image" src="https://github.com/user-attachments/assets/bd47ac3d-a9f6-4d1e-82e0-ca2b0938f6ec" />
 
 ---
 
@@ -124,29 +122,19 @@ See:
 
 ## VLAN 10
 
-VIP
+VIP: 10.42.10.1
 
-10.42.10.1
+MLS-CORE-A: 10.42.10.2
 
-MLS-CORE-A
-
-10.42.10.2
-
-MLS-CORE-B
-
-10.42.10.3
+MLS-CORE-B: 10.42.10.3
 
 ---
 
 # OSPF
 
-## Process
+Process: 42
 
-42
-
-## Area
-
-0
+Area: 0
 
 ## Router IDs
 
