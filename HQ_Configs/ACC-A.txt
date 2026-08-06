@@ -1,0 +1,92 @@
+!
+! ACC-A
+! Access Layer Switch A
+!
+
+hostname ACC-A
+
+!
+! Local Authentication
+!
+
+enable secret <REDACTED>
+
+username admin secret <REDACTED>
+
+!
+! Layer 2 Configuration
+!
+
+spanning-tree mode rapid-pvst
+
+!
+! Trunk Links
+!
+
+interface GigabitEthernet0/0
+ description to_ACC-B
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,40,100
+
+interface GigabitEthernet0/1
+ description to_MLS-CORE-A
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,40,100
+
+interface GigabitEthernet0/2
+ description to_MLS-CORE-B
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,40,100
+
+!
+! Access Ports
+!
+
+interface GigabitEthernet1/0
+ description to_HOST-A
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast edge
+ spanning-tree bpduguard enable
+
+interface GigabitEthernet1/1
+ description to_HOST-B
+ switchport mode access
+ switchport access vlan 100
+ spanning-tree portfast edge
+ spanning-tree bpduguard enable
+
+!
+! Management Interface
+!
+
+interface Vlan10
+ ip address 10.42.10.11 255.255.255.240
+
+ip default-gateway 10.42.10.1
+
+!
+! Management Services
+!
+
+ip http server
+
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+
+! Console Access
+
+line con 0
+ logging synchronous
+ login local
+
+! Remote Access
+
+line vty 0 4
+ logging synchronous
+ login local
+
+! End
