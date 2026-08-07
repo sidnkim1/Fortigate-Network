@@ -1,77 +1,20 @@
-# Redundant Enterprise Campus Network (GNS3)
+# Redundant Enterprise Campus Network
 
 ## Overview
 
-This project is a fully redundant enterprise campus network built in GNS3.
+This project is a highly available enterprise campus network built in GNS3.
 
-The design includes:
+Implemented technologies include:
 
-- Dual Layer-3 Core Switches
-- Dual Access Switches
-- FortiGate HA Firewall Cluster
-- HSRP First-Hop Redundancy
-- OSPF Dynamic Routing
-- Layer-2 Redundancy with EtherChannel
-- Management Network
-- ISP Edge Connectivity
-- Future NAT, VPN, and SD-WAN Integration
-
----
-
-## Project Goals
-
-### Primary Objectives
-
-- Eliminate single points of failure
-- Provide Layer-2 redundancy
-- Provide Layer-3 redundancy
-- Implement firewall high availability
-- Implement dynamic routing via OSPF
-- Simulate enterprise WAN connectivity
-
-### Secondary Objectives
-
-- Site-to-Site VPN
-- SD-WAN
-- Centralized Management
-- Route Summarization
-- Internet Edge Design
-
----
-
-# Current Status
-
-## Completed
-
-- [x] VLAN Implementation
-- [x] Access Layer Configuration
-- [x] Core Layer Configuration
-- [x] EtherChannel
-- [x] HSRP
-- [x] Inter-VLAN Routing
-- [x] FortiGate HA
-- [x] OSPF
-- [x] OSPF Failover Testing
-- [x] FortiGate Loopback Advertisement
-
-## In Progress
-
-- [ ] ISP Connectivity
-- [ ] Default Route Injection
-- [ ] NAT
-- [ ] Internet Simulation
-
-## Planned
-
-- [ ] IPsec VPN
-- [ ] SD-WAN
-- [ ] Dual ISP Failover
-
----
-
-# Topology
-
-<img width="1037" height="837" alt="image" src="https://github.com/user-attachments/assets/bd47ac3d-a9f6-4d1e-82e0-ca2b0938f6ec" />
+- Layer 2 Switching
+- VLAN Segmentation
+- EtherChannel (LACP)
+- HSRP
+- OSPF
+- FortiGate Active-Passive High Availability
+- Core-to-Core Dynamic Routing
+- Inter-VLAN Routing
+- Network Monitoring
 
 ---
 
@@ -79,62 +22,96 @@ The design includes:
 
 ## Core Layer
 
-| Device | Role |
-|----------|----------|
-| MLS-CORE-A | Primary Core |
-| MLS-CORE-B | Secondary Core |
+- MLS-CORE-A
+- MLS-CORE-B
 
 ## Access Layer
 
-| Device | Role |
-|----------|----------|
-| ACC-A | Access Switch |
-| ACC-B | Access Switch |
+- ACC-A
+- ACC-B
 
-## Firewall Layer
+## Security Layer
 
-| Device | Role |
-|----------|----------|
-| FG-FW-A | HA Primary |
-| FG-FW-B | HA Secondary |
+- FG-FW-A
+- FG-FW-B
 
-## Servers
+## End Devices
 
-| Device | Role |
-|----------|----------|
-| NMS-SERVER | Management Host |
+- HOST-A
+- HOST-B
+- HOST-C
+- NMS-SERVER
 
 ---
 
-# VLANs
+# VLAN Inventory
 
-| VLAN | Name | Subnet |
-|----------|----------|----------|
+| VLAN | Name | Network |
+|--------|--------|--------|
 | 10 | MGMT | 10.42.10.0/28 |
 | 20 | USERS | 10.42.20.0/24 |
 | 30 | WIFI | 10.42.30.0/24 |
 | 40 | GUEST | 10.42.40.0/24 |
 | 100 | FINANCE | 10.42.100.0/24 |
+| 999 | OSPF_TRANSIT | 10.42.254.0/30 |
+
+---
+
+# Core Infrastructure
+
+## Core Interconnect
+
+Port-Channel1
+
+Protocol:
+
+- LACP
+
+Allowed VLANs:
+
+- 10
+- 20
+- 30
+- 40
+- 100
+- 999
 
 ---
 
 # HSRP
 
-## VLAN 10
+## Virtual Gateways
 
-VIP: 10.42.10.1
+| VLAN | Gateway |
+|--------|--------|
+| 10 | 10.42.10.1 |
+| 20 | 10.42.20.1 |
+| 30 | 10.42.30.1 |
+| 40 | 10.42.40.1 |
+| 100 | 10.42.100.1 |
 
-MLS-CORE-A: 10.42.10.2
+### MLS-CORE-A Active
 
-MLS-CORE-B: 10.42.10.3
+- VLAN 10
+- VLAN 20
+- VLAN 100
+
+### MLS-CORE-B Active
+
+- VLAN 30
+- VLAN 40
 
 ---
 
 # OSPF
 
-Process: 42
+## Process ID
 
-Area: 0
+42
+
+## Area
+
+0
 
 ## Router IDs
 
@@ -142,16 +119,149 @@ Area: 0
 |----------|----------|
 | MLS-CORE-A | 10.42.10.2 |
 | MLS-CORE-B | 10.42.10.3 |
-| FortiGate Cluster | 10.42.10.4 |
+| FortiGate HA Cluster | 10.42.10.4 |
+
+---
+
+# Core-to-Core OSPF Transit
+
+| Device | Address |
+|----------|----------|
+| MLS-CORE-A | 10.42.254.1/30 |
+| MLS-CORE-B | 10.42.254.2/30 |
+
+Purpose:
+
+- Core-to-Core OSPF Adjacency
+- Alternate Routing Path
+- Single-Link Failure Recovery
 
 ---
 
 # Firewall Transit Networks
 
-## Primary Paths
+## FG-FW-A
 
-10.42.5.0/30
+| Interface | Address |
+|------------|------------|
+| port2 | 10.42.5.1/30 |
+| port3 | 10.42.5.5/30 |
 
-```text
-FG-FW-A port2 = 10.42.5.1
-MLS-CORE-A Gi0/0 = 10.42.5.2
+## FG-FW-B
+
+| Interface | Address |
+|------------|------------|
+| port2 | 10.42.5.9/30 |
+| port3 | 10.42.5.13/30 |
+
+## MLS-CORE-A
+
+| Interface | Address |
+|------------|------------|
+| Gi0/0 | 10.42.5.2/30 |
+| Gi0/1 | 10.42.5.10/30 |
+
+## MLS-CORE-B
+
+| Interface | Address |
+|------------|------------|
+| Gi0/0 | 10.42.5.6/30 |
+| Gi0/1 | 10.42.5.14/30 |
+
+---
+
+# FortiGate HA
+
+Mode:
+
+- Active-Passive
+
+Heartbeat Interfaces:
+
+- port6
+- port7
+
+Session Pickup:
+
+- Enabled
+
+Management Interface:
+
+- port1
+
+Device Priorities:
+
+- FG-FW-A: 200
+- FG-FW-B: 100
+
+Monitored Interfaces:
+
+- port2
+- port3
+
+---
+
+# Loopback Interfaces
+
+## FortiGate HA Cluster
+
+| Interface | Address |
+|-----------|-----------|
+| Loopback0 | 10.42.255.1/32 |
+
+Purpose:
+
+- OSPF Advertisement
+- Network Monitoring
+- HA Validation
+- Reachability Testing
+
+---
+
+# Management Addresses
+
+| Device | Address |
+|----------|----------|
+| MLS-CORE-A | 10.42.10.2 |
+| MLS-CORE-B | 10.42.10.3 |
+| ACC-A | 10.42.10.11 |
+| ACC-B | 10.42.10.12 |
+| NMS-SERVER | 10.42.10.6 |
+
+---
+
+# Routing Technologies
+
+- OSPF
+- HSRP
+- Inter-VLAN Routing
+
+---
+
+# Layer 2 Technologies
+
+- 802.1Q Trunking
+- Rapid PVST+
+- EtherChannel
+- LACP
+
+---
+
+# High Availability Technologies
+
+- FortiGate Active-Passive HA
+- HSRP
+- EtherChannel
+- Core-to-Core OSPF Redundancy
+
+---
+
+# Future Enhancements
+
+- Dual ISP Connectivity
+- NAT
+- IPsec VPN
+- SD-WAN
+- Syslog
+- SNMP Monitoring
+- Internet Edge Simulation
