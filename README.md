@@ -1,3 +1,6 @@
+<img width="843" height="791" alt="image" src="https://github.com/user-attachments/assets/52506ee7-2a9f-4de2-b035-dd8972231c40" />
+
+
 # Redundant Enterprise Campus Network
 
 ## Overview
