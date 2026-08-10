@@ -1,4 +1,4 @@
-# FortiGate HA Cluster Configuration
+# FortiGate HA, Internet Edge, and SD-WAN Configuration
 
 ## High Availability
 
@@ -9,12 +9,13 @@ System
 → High Availability
 ```
 
-Configure the FortiGate appliances in Active-Passive mode.
+Configure:
 
 ```text
 Mode: Active-Passive
 
-Group Name: Campus-HA
+Group Name:
+Campus-HA
 
 Device Priority:
 FG-FW-A = 200
@@ -24,10 +25,12 @@ Heartbeat Interfaces:
 port6
 port7
 
-Session Pickup: Enabled
-```
+Session Pickup:
+Enabled
 
-Enable override to allow the higher-priority appliance to reclaim primary status after recovery.
+Override:
+Enabled
+```
 
 ---
 
@@ -43,9 +46,10 @@ Network
 ### port2
 
 ```text
-Alias: to_MLS-CORE-A
+Alias:
+to_MLS-CORE-A
 
-IP Address:
+Address:
 10.42.5.1/30
 
 Administrative Access:
@@ -55,9 +59,10 @@ PING
 ### port3
 
 ```text
-Alias: to_MLS-CORE-B
+Alias:
+to_MLS-CORE-B
 
-IP Address:
+Address:
 10.42.5.5/30
 
 Administrative Access:
@@ -67,9 +72,10 @@ PING
 ### port4
 
 ```text
-Alias: to_MLS-CORE-A-Backup
+Alias:
+to_MLS-CORE-A-Backup
 
-IP Address:
+Address:
 10.42.5.9/30
 
 Administrative Access:
@@ -79,9 +85,10 @@ PING
 ### port5
 
 ```text
-Alias: to_MLS-CORE-B-Backup
+Alias:
+to_MLS-CORE-B-Backup
 
-IP Address:
+Address:
 10.42.5.13/30
 
 Administrative Access:
@@ -104,11 +111,13 @@ Network
 Configure:
 
 ```text
-Type: Loopback
+Type:
+Loopback
 
-Name: Loopback0
+Name:
+Loopback0
 
-IP Address:
+Address:
 10.42.255.1/32
 
 Administrative Access:
@@ -117,7 +126,7 @@ PING
 
 ---
 
-# OSPF Configuration
+## OSPF
 
 Navigate to:
 
@@ -131,19 +140,12 @@ Configure:
 ```text
 Router ID:
 10.42.10.4
+
+Area:
+0.0.0.0
 ```
 
-Create:
-
-```text
-Area 0.0.0.0
-```
-
----
-
-## OSPF Networks
-
-Add the following networks:
+### Networks
 
 ```text
 10.42.5.0/30
@@ -153,11 +155,7 @@ Add the following networks:
 10.42.255.1/32
 ```
 
----
-
-## OSPF Interfaces
-
-Add:
+### Interfaces
 
 ```text
 port2
@@ -166,29 +164,11 @@ port4
 port5
 ```
 
-Area:
-
-```text
-0.0.0.0
-```
-
----
-
-## Default Route Origination
-
-Navigate to:
-
-```text
-Network
-→ OSPF
-→ Advanced
-```
-
-Configure:
+### Default Route Origination
 
 ```text
 Default Information Originate:
-Regular Areas
+Enabled
 
 Metric Type:
 Type 2
@@ -199,7 +179,7 @@ Metric:
 
 ---
 
-# WAN Interface Configuration
+## WAN Interfaces
 
 Navigate to:
 
@@ -208,16 +188,16 @@ Network
 → Interfaces
 ```
 
-## ISP-DIA
-
-### port8
+### port8 (ISP-DIA)
 
 ```text
-Alias: ISP-DIA
+Alias:
+to_DIA
 
-Role: WAN
+Role:
+WAN
 
-IP Address:
+Address:
 172.16.0.2/29
 
 Administrative Access:
@@ -226,18 +206,16 @@ HTTPS
 SSH
 ```
 
----
-
-## ISP-BB
-
-### port9
+### port9 (ISP-BB)
 
 ```text
-Alias: ISP-BB
+Alias:
+to_BB
 
-Role: WAN
+Role:
+WAN
 
-IP Address:
+Address:
 172.16.0.10/29
 
 Administrative Access:
@@ -248,7 +226,7 @@ SSH
 
 ---
 
-# Static Routes
+## Static Routes
 
 Navigate to:
 
@@ -257,7 +235,9 @@ Network
 → Static Routes
 ```
 
-## Primary Route
+Create:
+
+### DIA
 
 ```text
 Destination:
@@ -268,14 +248,9 @@ Gateway:
 
 Interface:
 port8
-
-Administrative Distance:
-10
 ```
 
----
-
-## Secondary Route
+### BB
 
 ```text
 Destination:
@@ -286,131 +261,268 @@ Gateway:
 
 Interface:
 port9
-
-Administrative Distance:
-20
 ```
 
 ---
 
-# Local-In Policies
+# SD-WAN
+
+Navigate to:
+
+```text
+Network
+→ SD-WAN
+```
+
+Enable:
+
+```text
+SD-WAN
+```
+
+---
+
+## Members
+
+Add:
+
+```text
+to_DIA
+Gateway:
+172.16.0.1
+```
+
+```text
+to_BB
+Gateway:
+172.16.0.9
+```
+
+---
+
+## Performance SLA
+
+### DIA_SLA
+
+```text
+Target:
+8.8.8.8
+
+Interface:
+to_DIA
+```
+
+### BB_SLA
+
+```text
+Target:
+1.1.1.1
+
+Interface:
+to_BB
+```
+
+---
+
+## Address Objects
 
 Navigate to:
 
 ```text
 Policy & Objects
-→ Local In Policy
+→ Addresses
 ```
 
-## Policy 1
+Create:
 
 ```text
-Incoming Interface:
+MGMT-NETWORK
+USERS-NETWORK
+WIFI-NETWORK
+GUEST-NETWORK
+FINANCE-NETWORK
+
+HQ-NETWORK
+
+DIA-WAN
+BB-WAN
+
+ISP-DIA-GW
+ISP-BB-GW
+```
+
+---
+
+## Traffic Steering Rules
+
+Navigate to:
+
+```text
+Network
+→ SD-WAN
+→ SD-WAN Rules
+```
+
+### RuleA
+
+```text
+Destination:
+9.9.9.9
+
+Preferred Interface:
+to_DIA
+```
+
+### RuleB
+
+```text
+Destination:
+208.67.222.222
+
+Preferred Interface:
+to_BB
+```
+
+---
+
+# Internet Access Policy
+
+Navigate to:
+
+```text
+Policy & Objects
+→ Firewall Policy
+```
+
+Create:
+
+```text
+Name:
+HQ-Network -> SD-WAN
+
+Incoming:
 port2
 
+Outgoing:
+virtual-wan-link
+
 Source:
-all
+HQ-NETWORK
 
 Destination:
 all
 
 Service:
-PING
+ALL
 
-Action:
-ACCEPT
+NAT:
+Enabled
 ```
 
-## Policy 2
+---
+
+# Validation
+
+## HA
 
 ```text
-Incoming Interface:
-port3
-
-Source:
-all
-
-Destination:
-all
-
-Service:
-PING
-
-Action:
-ACCEPT
+System
+→ HA Status
 ```
 
-These policies allow external management devices to successfully ping Loopback0 (10.42.255.1).
+Verify:
+
+```text
+FG-FW-A = Primary
+
+FG-FW-B = Secondary
+```
 
 ---
 
-# CLI Configuration
+## OSPF
 
-## HA Override
+Verify OSPF neighbors are established with:
 
-```bash
-config system ha
- set override enable
-end
+```text
+MLS-CORE-A
+MLS-CORE-B
 ```
-
-This allows the higher-priority firewall to reclaim primary status following recovery.
 
 ---
 
-# Validation Commands
+## SD-WAN
 
-## HA Status
+Verify:
 
-```bash
-get system ha status
+```text
+Network
+→ SD-WAN
+→ Performance SLA
 ```
 
-## OSPF Neighbors
+Both:
 
-```bash
-get router info ospf neighbor
+```text
+DIA_SLA
+BB_SLA
 ```
 
-## Routing Table
+should display Healthy.
 
-```bash
-get router info routing-table all
+---
+
+## Traffic Steering
+
+Generate traffic to:
+
+```text
+9.9.9.9
+208.67.222.222
 ```
 
-## Interface Status
+Verify:
 
-```bash
-get system interface physical
+```text
+Log & Report
+→ Forward Traffic
 ```
 
-## Ping Testing
+Expected:
 
-```bash
-execute ping 10.42.5.2
-execute ping 10.42.5.6
-
-execute ping 8.8.8.8
-execute ping 8.8.4.4
-
-execute ping 1.1.1.1
-execute ping 1.0.0.1
+```text
+9.9.9.9
+→ RuleA
+→ to_DIA
 ```
 
-## Loopback Troubleshooting
-
-```bash
-diagnose debug reset
-
-diagnose debug flow filter daddr 10.42.255.1
-
-diagnose debug flow trace start 20
-
-diagnose debug enable
+```text
+208.67.222.222
+→ RuleB
+→ to_BB
 ```
 
-Disable debugging:
+---
 
-```bash
-diagnose debug disable
+## Failover
+
+Disconnect DIA connectivity.
+
+Verify:
+
+```text
+DIA_SLA
+→ Down
+```
+
+Traffic should automatically migrate to:
+
+```text
+to_BB
+```
+
+Restore DIA and verify traffic returns to:
+
+```text
+to_DIA
 ```
