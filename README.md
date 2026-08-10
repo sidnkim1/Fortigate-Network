@@ -114,13 +114,9 @@ Allowed VLANs:
 
 # OSPF
 
-## Process ID
+Process ID: 42
 
-42
-
-## Area
-
-0
+Area: 0
 
 ## Router IDs
 
