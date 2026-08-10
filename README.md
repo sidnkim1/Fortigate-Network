@@ -1,336 +1,228 @@
 <img width="843" height="791" alt="image" src="https://github.com/user-attachments/assets/52506ee7-2a9f-4de2-b035-dd8972231c40" />
 
 
-# Redundant Enterprise Campus Network
+# Dual ISP Edge Connectivity and SD-WAN
 
 ## Overview
 
-This project is a highly available enterprise campus network built in GNS3 utilizing Cisco multilayer switching and FortiGate firewalls.
-
-The environment implements:
-
-- Dual Core Layer 3 Switching
-- Dual Access Layer Switching
-- FortiGate Active-Passive High Availability
-- OSPF Dynamic Routing
-- HSRP First-Hop Redundancy
-- EtherChannel (LACP)
-- Dedicated OSPF Transit Network
-- Dual WAN Connectivity
-- DHCP Relay Services
-- Loopback-Based Monitoring and Testing
-
----
-
-# Device Inventory
-
-## Core Layer
-
-- MLS-CORE-A
-- MLS-CORE-B
-
-## Access Layer
-
-- ACC-A
-- ACC-B
-
-## Firewall Layer
-
-- FG-FW-A
-- FG-FW-B
-
-## WAN Edge
-
-- ISP-DIA-DEMARC
-- ISP-BB-DEMARC
-
-## Endpoints
-
-- HOST-A
-- HOST-B
-- HOST-C
-- NMS-SERVER
-
----
-
-# VLAN Inventory
-
-| VLAN | Name | Subnet |
-|--------|--------|--------|
-| 10 | MGMT | 10.42.10.0/28 |
-| 20 | USERS | 10.42.20.0/24 |
-| 30 | WIFI | 10.42.30.0/24 |
-| 40 | GUEST | 10.42.40.0/24 |
-| 100 | FINANCE | 10.42.100.0/24 |
-| 999 | OSPF_TRANSIT | 10.42.254.0/30 |
-
----
-
-# Core Infrastructure
-
-## Core Interconnect
-
-Port-Channel1
-
-Protocol:
-
-- LACP
-
-Allowed VLANs:
-
-- 10
-- 20
-- 30
-- 40
-- 100
-- 999
-
----
-
-# HSRP
-
-## Virtual Gateways
-
-| VLAN | Virtual IP |
-|--------|--------|
-| 10 | 10.42.10.1 |
-| 20 | 10.42.20.1 |
-| 30 | 10.42.30.1 |
-| 40 | 10.42.40.1 |
-| 100 | 10.42.100.1 |
-
-### MLS-CORE-A Active
-
-- VLAN 10
-- VLAN 20
-- VLAN 100
-
-### MLS-CORE-B Active
-
-- VLAN 30
-- VLAN 40
-
----
-
-# OSPF
-
-Process ID: 42
-
-Area: 0
-
-## Router IDs
-
-| Device | Router ID |
-|----------|----------|
-| MLS-CORE-A | 10.42.10.2 |
-| MLS-CORE-B | 10.42.10.3 |
-| FortiGate HA Cluster | 10.42.10.4 |
-
-## OSPF Adjacencies
-
-- MLS-CORE-A ↔ FG-FW-A
-- MLS-CORE-B ↔ FG-FW-A
-- MLS-CORE-A ↔ MLS-CORE-B (VLAN 999)
-
----
-
-# OSPF Transit Network
-
-## VLAN 999
-
-Purpose:
-
-- Core-to-Core OSPF Adjacency
-- Alternate Routing Path
-- Single-Link Failure Recovery
-
-### Addressing
-
-| Device | IP Address |
-|----------|----------|
-| MLS-CORE-A | 10.42.254.1/30 |
-| MLS-CORE-B | 10.42.254.2/30 |
-
----
-
-# Firewall Transit Networks
-
-## FG-FW-A
-
-| Interface | Address |
-|------------|------------|
-| port2 | 10.42.5.1/30 |
-| port3 | 10.42.5.5/30 |
-
-## FG-FW-B
-
-| Interface | Address |
-|------------|------------|
-| port4 | 10.42.5.9/30 |
-| port5 | 10.42.5.13/30 |
-
-## MLS-CORE-A
-
-| Interface | Address |
-|------------|------------|
-| Gi0/0 | 10.42.5.2/30 |
-| Gi0/1 | 10.42.5.10/30 |
-
-## MLS-CORE-B
-
-| Interface | Address |
-|------------|------------|
-| Gi0/0 | 10.42.5.6/30 |
-| Gi0/1 | 10.42.5.14/30 |
-
----
-
-# FortiGate High Availability
-
-Mode:
-
-- Active-Passive
-
-Heartbeat Interfaces:
-
-- port6
-- port7
-
-Priorities:
-
-- FG-FW-A: 200
-- FG-FW-B: 100
-
-Override:
-
-- Enabled
-
-Session Pickup:
-
-- Enabled
-
----
-
-# Loopback Interfaces
-
-## FortiGate HA Cluster
-
-| Interface | Address |
-|----------|----------|
-| Loopback0 | 10.42.255.1/32 |
-
-Purpose:
-
-- OSPF Advertisement
-- Network Monitoring
-- HA Validation
-- Redundancy Testing
-
----
-
-# WAN Connectivity
-
-## ISP-DIA
-
-### WAN Segment
-
-172.16.0.0/29
+To improve Internet resiliency and demonstrate enterprise WAN design concepts, two independent ISP demarcation routers were deployed and connected to separate Internet uplinks through GNS3 cloud interfaces.
+
+The FortiGate HA cluster was configured with SD-WAN to provide:
+
+- Dual ISP Internet connectivity
+- Application and destination-based traffic steering
+- Performance SLA monitoring
+- Automatic failover and recovery
+- Centralized WAN policy control
+
+## Physical Topology
+
+Internet Cloud A
+    |
+ISP-DIA-DEMARC
+    |
+SW-DIA
+    |
+FortiGate HA
+
+Internet Cloud B
+    |
+ISP-BB-DEMARC
+    |
+SW-BB
+    |
+FortiGate HA
+
+## WAN Networks
+
+### DIA ISP
 
 | Device | Address |
 |----------|----------|
-| ISP-DIA-DEMARC | 172.16.0.1 |
-| FortiGate port8 | 172.16.0.2 |
+| ISP-DIA-DEMARC | 172.16.0.1/29 |
+| FortiGate DIA Interface | 172.16.0.2/29 |
 
-### Simulated Internet Services
+### BB ISP
+
+| Device | Address |
+|----------|----------|
+| ISP-BB-DEMARC | 172.16.0.9/29 |
+| FortiGate BB Interface | 172.16.0.10/29 |
+
+## ISP Loopback Services
+
+To simulate common external Internet destinations, loopback interfaces were created on both ISP routers.
+
+### ISP-DIA-DEMARC
 
 - 8.8.8.8
 - 8.8.4.4
-
----
-
-## ISP-BB
-
-### WAN Segment
-
-172.16.0.8/29
-
-| Device | Address |
-|----------|----------|
-| ISP-BB-DEMARC | 172.16.0.9 |
-| FortiGate port9 | 172.16.0.10 |
-
-### Simulated Internet Services
-
 - 1.1.1.1
 - 1.0.0.1
 
----
+### ISP-BB-DEMARC
 
-# WAN Routing
+- 8.8.8.8
+- 8.8.4.4
+- 1.1.1.1
+- 1.0.0.1
 
-Primary Route:
+These addresses were used to demonstrate destination-based SD-WAN path selection and failover behavior.
 
-- 0.0.0.0/0 → 172.16.0.1 (ISP-DIA)
+## SD-WAN Configuration
 
-Backup Route:
+### SD-WAN Members
 
-- 0.0.0.0/0 → 172.16.0.9 (ISP-BB)
+| Member | Interface | Gateway |
+|----------|----------|----------|
+| DIA | to_DIA (port8) | 172.16.0.1 |
+| BB | to_BB (port9) | 172.16.0.9 |
 
-OSPF Default Route Origination:
+### Performance SLA
 
-- Enabled
+#### DIA_SLA
 
-Metric Type:
+Target:
 
-- E2
+8.8.8.8
 
-Metric:
+Monitored Interface:
 
-- 10
+to_DIA
 
----
+#### BB_SLA
 
-# Access Layer Management
+Target:
 
-| Device | Address |
-|----------|----------|
-| ACC-A | 10.42.10.11 |
-| ACC-B | 10.42.10.12 |
+1.1.1.1
 
----
+Monitored Interface:
 
-# Management Devices
+to_BB
 
-| Device | Address |
-|----------|----------|
-| NMS-SERVER | 10.42.10.6 |
+Both SLA health checks continuously verify WAN availability and trigger failover when a path becomes unavailable.
 
----
+## Destination-Based Traffic Steering
 
-# Routing Technologies
+### RuleA
 
-- OSPF
-- HSRP
-- Inter-VLAN Routing
-- Static WAN Routing
+Preferred Link:
 
----
+ISP-DIA
 
-# Layer 2 Technologies
+Destinations:
 
-- 802.1Q Trunking
-- PVST
-- EtherChannel
-- LACP
-- PortFast
-- BPDU Guard
+- 9.9.9.9
 
----
+Purpose:
 
-# High Availability Technologies
+Direct selected destinations through the DIA connection.
 
-- FortiGate Active-Passive HA
-- HSRP
-- EtherChannel
-- OSPF Redundancy
-- Core-to-Core OSPF Transit Network
+### RuleB
+
+Preferred Link:
+
+ISP-BB
+
+Destinations:
+
+- 208.67.222.222
+
+Purpose:
+
+Direct selected destinations through the BB connection.
+
+## Firewall Policy
+
+A single Internet access policy was configured using the SD-WAN zone.
+
+Source Interface:
+
+port2
+
+Destination Interface:
+
+virtual-wan-link
+
+Source:
+
+HQ-Network
+
+Destination:
+
+all
+
+Services:
+
+ALL
+
+NAT:
+
+Enabled
+
+The SD-WAN engine determines the proper WAN interface after the firewall policy is matched.
+
+## Validation
+
+### Internet Connectivity
+
+Verified from:
+
+- FortiGate WAN interfaces
+- NMS Server
+- ISP-DIA-DEMARC
+- ISP-BB-DEMARC
+
+Test Destinations:
+
+- 9.9.9.9
+- 208.67.222.222
+
+### SD-WAN Rule Validation
+
+Traffic logs confirmed:
+
+#### RuleA
+
+Destination:
+
+9.9.9.9
+
+Selected Interface:
+
+to_DIA
+
+#### RuleB
+
+Destination:
+
+208.67.222.222
+
+Selected Interface:
+
+to_BB
+
+### Failover Validation
+
+Test Procedure:
+
+1. Generate continuous traffic to a monitored destination.
+2. Disconnect DIA Internet connectivity.
+3. Observe DIA_SLA failure.
+4. Verify traffic automatically transitions to ISP-BB.
+5. Restore DIA connectivity.
+6. Verify traffic returns to preferred DIA path.
+
+Result:
+
+Automatic failover and recovery were successfully validated.
+
+## Design Benefits
+
+- Dual active Internet connectivity
+- Destination-based path steering
+- SLA-driven failover
+- Automatic path recovery
+- Improved WAN resiliency
+- Simplified Internet policy management through SD-WAN
+- Enterprise-grade Internet edge architecture
