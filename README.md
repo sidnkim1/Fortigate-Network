@@ -1,6 +1,7 @@
-<img width="843" height="791" alt="image" src="https://github.com/user-attachments/assets/52506ee7-2a9f-4de2-b035-dd8972231c40" />
+<img width="961" height="825" alt="image" src="https://github.com/user-attachments/assets/fd1705b8-200b-4d92-8fdd-784a694fda2b" />
 
-# Enterprise Service Provider, Security, and SD-WAN Lab
+
+# Enterprise WAN, Security, and SD-WAN Architecture Project
 
 ## Overview
 
@@ -231,7 +232,6 @@ Each ISP router maintains independent Internet connectivity through separate GNS
 
 ```text
 172.16.0.0/29   DIA
-
 172.16.0.8/29   BB
 ```
 
@@ -258,27 +258,49 @@ BB  -> 1.1.1.1
 
 Continuous SLA monitoring validates WAN availability and performance.
 
+### Address Objects
+
+FortiGate address objects were created to simplify policy management, SD-WAN rule creation, and future network segmentation.
+
+Examples include:
+
+- MGMT-NETWORK
+- USERS-NETWORK
+- WIFI-NETWORK
+- GUEST-NETWORK
+- FINANCE-NETWORK
+- HQ-NETWORK
+- ISP-DIA-GW
+- ISP-BB-GW
+- DIA-WAN
+- BB-WAN
+
+Address groups were used to organize enterprise resources and simplify policy administration.
+
 ### Traffic Steering
 
-Destination-based SD-WAN policies were implemented.
+Destination-based SD-WAN policies were implemented to direct specific traffic across preferred ISP circuits.
 
 Examples:
 
 ```text
 9.9.9.9
-→ DIA
+→ ISP-DIA
 ```
 
 ```text
 208.67.222.222
-→ BB
+→ ISP-BB
 ```
 
-Traffic steering was validated through:
+Traffic steering was validated using:
 
 - SD-WAN rule counters
 - FortiGate traffic logs
-- Successful Internet connectivity tests
+- NAT translation verification
+- End-to-end client connectivity testing
+
+Traffic logs confirmed that packets were routed through the expected WAN interface and matched the intended SD-WAN policy.
 
 ### Automatic Failover
 
@@ -352,7 +374,10 @@ The completed environment successfully demonstrates:
 - Management plane security
 - Firewall high availability
 - Dual ISP Internet resiliency
+- Dual ISP active utilization
+- Destination-based traffic steering
+- Performance SLA monitoring
 - SD-WAN traffic engineering
 - Automatic WAN failover and recovery
 
-The final design combines enterprise networking, service provider routing, network security, and modern WAN optimization technologies into a single integrated lab environment.
+The final design combines enterprise networking, service provider routing, network security, firewall high availability, and modern WAN optimization technologies into a single integrated lab environment.
