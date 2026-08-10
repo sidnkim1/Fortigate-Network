@@ -1,228 +1,111 @@
 <img width="843" height="791" alt="image" src="https://github.com/user-attachments/assets/52506ee7-2a9f-4de2-b035-dd8972231c40" />
 
 
-# Dual ISP Edge Connectivity and SD-WAN
+# Enterprise Service Provider and Security Architecture Lab
 
-## Overview
+## Project Overview
 
-To improve Internet resiliency and demonstrate enterprise WAN design concepts, two independent ISP demarcation routers were deployed and connected to separate Internet uplinks through GNS3 cloud interfaces.
+This project simulates a multi-site enterprise network connected across a service provider WAN while incorporating enterprise routing, VPN technologies, Internet access, security controls, management plane protections, and SD-WAN traffic engineering.
 
-The FortiGate HA cluster was configured with SD-WAN to provide:
+The environment was built in GNS3 and consists of four enterprise locations connected through a simulated ISP backbone. The design combines underlay routing, service provider routing, overlay VPN technologies, enterprise security controls, and dual-ISP Internet connectivity.
 
-- Dual ISP Internet connectivity
-- Application and destination-based traffic steering
-- Performance SLA monitoring
-- Automatic failover and recovery
-- Centralized WAN policy control
+---
 
-## Physical Topology
+# High-Level Architecture
 
-Internet Cloud A
-    |
-ISP-DIA-DEMARC
-    |
-SW-DIA
-    |
-FortiGate HA
+## Enterprise Sites
 
-Internet Cloud B
-    |
-ISP-BB-DEMARC
-    |
-SW-BB
-    |
-FortiGate HA
+### Hub Site
 
-## WAN Networks
+CE-RTR-1
 
-### DIA ISP
+Networks:
 
-| Device | Address |
-|----------|----------|
-| ISP-DIA-DEMARC | 172.16.0.1/29 |
-| FortiGate DIA Interface | 172.16.0.2/29 |
+- 10.1.1.0/24
+- 10.1.2.0/24
 
-### BB ISP
+### Spoke Site A
 
-| Device | Address |
-|----------|----------|
-| ISP-BB-DEMARC | 172.16.0.9/29 |
-| FortiGate BB Interface | 172.16.0.10/29 |
+CE-RTR-2
 
-## ISP Loopback Services
+Networks:
 
-To simulate common external Internet destinations, loopback interfaces were created on both ISP routers.
+- 10.2.1.0/24
+- 10.2.2.0/24
 
-### ISP-DIA-DEMARC
+### Spoke Site B
 
-- 8.8.8.8
-- 8.8.4.4
-- 1.1.1.1
-- 1.0.0.1
+CE-RTR-3
 
-### ISP-BB-DEMARC
+Networks:
 
-- 8.8.8.8
-- 8.8.4.4
-- 1.1.1.1
-- 1.0.0.1
+- 10.3.1.0/24
+- 10.3.2.0/24
 
-These addresses were used to demonstrate destination-based SD-WAN path selection and failover behavior.
+### Spoke Site C
 
-## SD-WAN Configuration
+CE-RTR-4
 
-### SD-WAN Members
+Networks:
 
-| Member | Interface | Gateway |
-|----------|----------|----------|
-| DIA | to_DIA (port8) | 172.16.0.1 |
-| BB | to_BB (port9) | 172.16.0.9 |
+- 10.4.1.0/24
+- 10.4.2.0/24
 
-### Performance SLA
+---
 
-#### DIA_SLA
+# Service Provider WAN
 
-Target:
+The enterprise WAN is transported across a simulated provider network consisting of:
 
-8.8.8.8
+- Access Routers
+- Backbone Routers
+- Route Reflectors
+- ISP Edge Devices
 
-Monitored Interface:
+Technologies implemented:
 
-to_DIA
+- OSPF Underlay
+- iBGP
+- eBGP
+- Route Reflection
 
-#### BB_SLA
+The provider network serves as the transport layer for enterprise VPN services.
 
-Target:
+---
 
-1.1.1.1
+# VPN Overlay
 
-Monitored Interface:
+Secure site-to-site connectivity is provided through a hub-and-spoke VPN architecture.
 
-to_BB
+Technologies implemented:
 
-Both SLA health checks continuously verify WAN availability and trigger failover when a path becomes unavailable.
+- IPsec
+- GRE Tunnel Interfaces
+- EIGRP Overlay Routing
 
-## Destination-Based Traffic Steering
+Hub Router:
 
-### RuleA
+- CE-RTR-1
 
-Preferred Link:
+Spoke Routers:
 
-ISP-DIA
+- CE-RTR-2
+- CE-RTR-3
+- CE-RTR-4
 
-Destinations:
+All remote networks are learned dynamically through EIGRP operating across encrypted IPsec tunnels.
 
-- 9.9.9.9
+---
 
-Purpose:
+# Internet Connectivity
 
-Direct selected destinations through the DIA connection.
+Enterprise hosts are provided Internet access using a layered NAT design.
 
-### RuleB
+## CE Router PAT
 
-Preferred Link:
+Internal Hosts
 
-ISP-BB
-
-Destinations:
-
-- 208.67.222.222
-
-Purpose:
-
-Direct selected destinations through the BB connection.
-
-## Firewall Policy
-
-A single Internet access policy was configured using the SD-WAN zone.
-
-Source Interface:
-
-port2
-
-Destination Interface:
-
-virtual-wan-link
-
-Source:
-
-HQ-Network
-
-Destination:
-
-all
-
-Services:
-
-ALL
-
-NAT:
-
-Enabled
-
-The SD-WAN engine determines the proper WAN interface after the firewall policy is matched.
-
-## Validation
-
-### Internet Connectivity
-
-Verified from:
-
-- FortiGate WAN interfaces
-- NMS Server
-- ISP-DIA-DEMARC
-- ISP-BB-DEMARC
-
-Test Destinations:
-
-- 9.9.9.9
-- 208.67.222.222
-
-### SD-WAN Rule Validation
-
-Traffic logs confirmed:
-
-#### RuleA
-
-Destination:
-
-9.9.9.9
-
-Selected Interface:
-
-to_DIA
-
-#### RuleB
-
-Destination:
-
-208.67.222.222
-
-Selected Interface:
-
-to_BB
-
-### Failover Validation
-
-Test Procedure:
-
-1. Generate continuous traffic to a monitored destination.
-2. Disconnect DIA Internet connectivity.
-3. Observe DIA_SLA failure.
-4. Verify traffic automatically transitions to ISP-BB.
-5. Restore DIA connectivity.
-6. Verify traffic returns to preferred DIA path.
-
-Result:
-
-Automatic failover and recovery were successfully validated.
-
-## Design Benefits
-
-- Dual active Internet connectivity
-- Destination-based path steering
-- SLA-driven failover
-- Automatic path recovery
-- Improved WAN resiliency
-- Simplified Internet policy management through SD-WAN
-- Enterprise-grade Internet edge architecture
+```text
+10.X.X.X
+     ↓
+198.51.100.X
