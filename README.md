@@ -1,397 +1,174 @@
 <img width="843" height="791" alt="image" src="https://github.com/user-attachments/assets/52506ee7-2a9f-4de2-b035-dd8972231c40" />
 
+# Enterprise Service Provider, Security, and SD-WAN Lab
 
-# Enterprise Campus, Service Provider, Security, and SD-WAN Architecture Lab
+## Overview
 
-## Executive Summary
+This project simulates a multi-site enterprise network connected across a service provider WAN while implementing dynamic routing, Internet connectivity, network security, management plane protection, firewall high availability, and SD-WAN traffic engineering.
 
-This project simulates a multi-site enterprise connected through a service provider WAN while implementing enterprise-grade routing, VPN services, security controls, secure management, Internet connectivity, high availability, and SD-WAN traffic engineering.
+The environment was built entirely within GNS3 and combines enterprise networking, service provider networking, firewall administration, and WAN resiliency concepts into a single integrated design.
 
-The environment was built entirely within GNS3 and combines technologies commonly found in modern enterprise and service provider networks. The completed topology demonstrates underlay and overlay routing, encrypted site-to-site connectivity, Internet breakout, firewall-based security, dual ISP connectivity, secure management plane design, and WAN resiliency through SD-WAN.
-
-The final solution integrates:
-
-- Enterprise campus networking
-- Service provider WAN transport
-- Dynamic routing
-- VPN technologies
-- Network security controls
-- Firewall high availability
-- NAT/PAT
-- Secure administrative access
-- Dual ISP Internet connectivity
-- SD-WAN traffic steering
-- Automatic WAN failover
-
----
-
-# Network Architecture
-
-The environment is organized into several logical layers.
-
-## Layer 1: Transport Underlay
-
-The underlay network is responsible for providing basic IP connectivity throughout the service provider infrastructure.
-
-### Technologies
+### Technologies Implemented
 
 - OSPF
-- Routed point-to-point links
-- Layer 3 backbone design
-
-### Responsibilities
-
-- Provider infrastructure reachability
-- Backbone transport
-- Route propagation between provider devices
-- Transport for BGP sessions
-- Transport for enterprise VPN traffic
-
-The underlay is provider-facing and remains isolated from enterprise route advertisements.
-
----
-
-## Layer 2: Service Provider Routing
-
-The service provider network transports customer routes across the WAN.
-
-### Technologies
-
+- EIGRP
 - iBGP
 - eBGP
 - Route Reflection
-
-### Components
-
-- Access Routers
-- Backbone Routers
-- Route Reflectors
-- Edge Routers
-
-### Responsibilities
-
-- Customer route transport
-- BGP scalability
-- Centralized route distribution
-- Elimination of full-mesh iBGP requirements
+- NAT/PAT
+- ACLs
+- SSH Management
+- FortiGate HA
+- FortiGate SD-WAN
 
 ---
 
-## Layer 3: Enterprise VPN Overlay
+## High-Level Architecture
 
-Secure enterprise connectivity is delivered through an encrypted hub-and-spoke VPN overlay.
+### Headquarters
 
-### Technologies
-
-- GRE
-- IPsec
-- EIGRP
-
-### Hub Site
+**CE-RTR-1**
 
 ```text
-CE-RTR-1
+10.1.1.0/24   Management
+10.1.2.0/24   Servers
 ```
 
-### Spoke Sites
+### Branch A
 
-```text
-CE-RTR-2
-CE-RTR-3
-CE-RTR-4
-```
-
-### Responsibilities
-
-- Dynamic route exchange
-- Secure site-to-site communications
-- Enterprise route advertisement
-- Overlay convergence
-- Branch connectivity
-
-All enterprise routes traverse encrypted IPsec tunnels.
-
----
-
-# Enterprise Site Design
-
-## Headquarters
-
-### Router
-
-```text
-CE-RTR-1
-```
-
-### Networks
-
-```text
-10.1.1.0/24  Management Network
-10.1.2.0/24  Server Network
-```
-
-The headquarters site hosts centralized management functions and shared enterprise services.
-
----
-
-## Branch A
-
-### Router
-
-```text
-CE-RTR-2
-```
-
-### Networks
+**CE-RTR-2**
 
 ```text
 10.2.1.0/24
 10.2.2.0/24
 ```
 
-### Management Loopback
+### Branch B
 
-```text
-10.2.99.1/32
-```
-
----
-
-## Branch B
-
-### Router
-
-```text
-CE-RTR-3
-```
-
-### Networks
+**CE-RTR-3**
 
 ```text
 10.3.1.0/24
 10.3.2.0/24
 ```
 
-### Management Loopback
+### Branch C
 
-```text
-10.3.99.1/32
-```
-
----
-
-## Branch C
-
-### Router
-
-```text
-CE-RTR-4
-```
-
-### Networks
+**CE-RTR-4**
 
 ```text
 10.4.1.0/24
 10.4.2.0/24
 ```
 
-### Management Loopback
-
-```text
-10.4.99.1/32
-```
+All enterprise routes are exchanged dynamically through an EIGRP overlay running across the service provider WAN.
 
 ---
 
-# Routing Architecture
+## Routing Architecture
 
-## OSPF Underlay
+### OSPF
 
-The provider infrastructure uses OSPF as the transport routing protocol.
+Provides transport connectivity throughout the service provider infrastructure.
 
-### Functions
+### BGP
 
-- Infrastructure reachability
-- WAN transport
-- Backbone convergence
-
-Customer routes are not exchanged through OSPF.
-
----
-
-## BGP Service Provider Layer
-
-BGP is used within the provider network to transport customer routing information.
-
-### Components
+Provides route transport within the simulated provider network using:
 
 - iBGP
 - eBGP
 - Route Reflection
 
-### Benefits
+### EIGRP
 
-- WAN scalability
-- Reduced administrative overhead
-- Efficient route distribution
-- Service provider route transport
+Provides enterprise route exchange between headquarters and branch locations.
 
----
-
-## EIGRP Overlay
-
-EIGRP operates inside the encrypted VPN overlay.
-
-### Responsibilities
-
-- Enterprise route exchange
-- Dynamic branch reachability
-- Hub-and-spoke route distribution
-- Automatic convergence
-
-All branch networks are learned dynamically through EIGRP.
+All branch LANs are learned dynamically through EIGRP.
 
 ---
 
-# VPN Architecture
+## Service Provider WAN
 
-## GRE
+The provider network consists of:
 
-GRE provides routed tunnel interfaces capable of transporting dynamic routing protocols.
+- Access Routers
+- Backbone Routers
+- Route Reflectors
+- Provider Edge Services
 
-### Functions
-
-- Logical WAN overlay
-- EIGRP transport
-- Tunnel abstraction
-
----
-
-## IPsec
-
-IPsec provides encryption of all overlay traffic.
-
-### Functions
-
-- Confidentiality
-- Integrity
-- Authentication
-- Secure WAN communications
-
-All GRE traffic is protected by IPsec.
+The provider infrastructure transports enterprise traffic while maintaining dynamic routing and route scalability through BGP and Route Reflection.
 
 ---
 
-# Internet Connectivity
+## Internet Connectivity
 
-Enterprise Internet access is provided through a layered NAT design.
+Enterprise Internet access is provided using a layered PAT design.
 
-## Customer Edge PAT
+### Branch PAT
 
-Each CE router performs PAT using its WAN interface address.
-
-### Translation
+Internal addresses:
 
 ```text
 10.X.X.X
-    ↓
-198.51.100.X
 ```
 
-### Purpose
-
-- Internet access
-- Address conservation
-- User Internet breakout
-
----
-
-## Provider Edge PAT
-
-Additional PAT occurs at the provider edge.
-
-### Translation
+are translated to:
 
 ```text
 198.51.100.X
-      ↓
-192.168.122.X
 ```
 
-### Purpose
+at the CE routers.
 
-- Connectivity to the GNS3 NAT cloud
-- Public Internet access
-- Return traffic handling
+### Internet Edge PAT
+
+Provider WAN addresses are translated through the GNS3 Internet edge to provide access to the Internet.
+
+This implementation provides Internet access for all enterprise locations while preserving enterprise routing functionality.
 
 ---
 
-# Security Architecture
+## Security Architecture
 
-Access controls are implemented at all spoke locations.
+Access control policies were implemented on all branch routers.
 
-## VPN Security Policy
+### VPN Security Policy
 
 Allowed:
 
-```text
-HTTPS (443)
-SMTP (25)
-SMTP Submission (587)
-ICMP Management Traffic
-EIGRP Control Plane Traffic
-```
+- HTTPS
+- SMTP
+- SMTP Submission
+- Management ICMP
+- EIGRP Control Traffic
 
-Denied:
-
-```text
-Unauthorized VPN Traffic
-```
-
----
-
-## WAN Security Policy
+### WAN Security Policy
 
 Allowed:
 
-```text
-HTTP
-HTTPS
-DNS
-ICMP
-ESP
-ISAKMP
-BGP
-```
+- HTTP
+- HTTPS
+- DNS
+- ICMP
+- BGP
+- ISAKMP
+- ESP
 
 Denied:
 
-```text
-Telnet
-Unauthorized SSH
-Unapproved Inbound Services
-```
+- Telnet
+- Unauthorized SSH
+- Unapproved inbound traffic
+
+ACL hit counters were used to validate policy enforcement.
 
 ---
 
-## Validation
+## Management Plane Security
 
-Security policies were validated using:
+Dedicated management loopbacks were deployed on all branch routers.
 
-```text
-ACL Hit Counters
-Connectivity Testing
-Traffic Analysis
-Application Validation
-```
-
----
-
-# Management Plane Security
-
-Dedicated management loopbacks were deployed on each branch router.
-
-## Management Addresses
+### Management Addresses
 
 ```text
 CE-RTR-2  10.2.99.1
@@ -399,33 +176,25 @@ CE-RTR-3  10.3.99.1
 CE-RTR-4  10.4.99.1
 ```
 
----
+### Management Security
 
-## SSH Security
+Implemented controls include:
 
-Implemented:
+- SSH-only administration
+- RSA key generation
+- Local user authentication
+- VTY access restrictions
+- Management ACLs
 
-```text
-SSH
-Local Authentication
-RSA Keys
-VTY Restrictions
-Management ACLs
-```
-
-Only the management network is permitted SSH access.
-
-```text
-10.1.1.0/24
-```
+Only authorized management networks are permitted administrative access.
 
 ---
 
-# Firewall Infrastructure
+## Firewall High Availability
 
-Internet edge security is provided by a FortiGate HA cluster.
+A FortiGate HA pair protects the enterprise edge.
 
-## Firewalls
+### Firewalls
 
 ```text
 FG-FW-A
@@ -434,213 +203,156 @@ FG-FW-B
 
 ### Functions
 
-- Stateful Inspection
+- Stateful Firewalling
 - NAT
 - Internet Breakout
-- Security Enforcement
 - SD-WAN
-- Traffic Steering
+- Security Policy Enforcement
+
+The HA implementation provides device redundancy and service continuity.
 
 ---
 
-# Firewall High Availability
+## Dual ISP Design
 
-The FortiGates operate as a high availability pair.
+Two independent ISP connections provide Internet access.
 
-### Benefits
+### ISP-DIA-DEMARC
 
-- Device redundancy
-- Reduced downtime
-- Centralized policy enforcement
-- Seamless failover
+Primary Internet connection.
 
----
+### ISP-BB-DEMARC
 
-# Dual ISP Design
+Secondary Internet connection.
 
-To improve Internet resiliency, two independent ISP paths were implemented.
+Each ISP router maintains independent Internet connectivity through separate GNS3 cloud connections.
 
-## ISP-DIA-DEMARC
-
-Primary dedicated Internet circuit.
-
-### Connected Components
+### WAN Networks
 
 ```text
-Internet Cloud
-ISP-DIA-DEMARC
-SW-DIA
-FortiGate HA
-```
+172.16.0.0/29   DIA
 
-### WAN Network
-
-```text
-172.16.0.0/29
-```
-
-### Gateway
-
-```text
-172.16.0.1
+172.16.0.8/29   BB
 ```
 
 ---
 
-## ISP-BB-DEMARC
-
-Secondary broadband circuit.
-
-### Connected Components
-
-```text
-Internet Cloud
-ISP-BB-DEMARC
-SW-BB
-FortiGate HA
-```
-
-### WAN Network
-
-```text
-172.16.0.8/29
-```
-
-### Gateway
-
-```text
-172.16.0.9
-```
-
----
-
-# SD-WAN Architecture
+## SD-WAN Implementation
 
 FortiGate SD-WAN was implemented to intelligently utilize both ISP circuits.
 
-## SD-WAN Members
-
-### DIA
+### WAN Members
 
 ```text
 to_DIA
-Gateway: 172.16.0.1
-```
-
-### BB
-
-```text
-to_BB
-Gateway: 172.16.0.9
-```
-
----
-
-## Performance SLA Monitoring
-
-### DIA_SLA
-
-Monitored Destination:
-
-```text
-8.8.8.8
-```
-
-Preferred Link:
-
-```text
-to_DIA
-```
-
----
-
-### BB_SLA
-
-Monitored Destination:
-
-```text
-1.1.1.1
-```
-
-Preferred Link:
-
-```text
 to_BB
 ```
 
----
+### Performance SLA Monitoring
 
-## Destination-Based Traffic Steering
+```text
+DIA -> 8.8.8.8
 
-Traffic steering policies were implemented to direct specific Internet destinations out specific ISP circuits.
+BB  -> 1.1.1.1
+```
 
-### RuleA
+Continuous SLA monitoring validates WAN availability and performance.
 
-Destination:
+### Traffic Steering
+
+Destination-based SD-WAN policies were implemented.
+
+Examples:
 
 ```text
 9.9.9.9
+→ DIA
 ```
-
-Selected Interface:
-
-```text
-ISP-DIA
-```
-
-Purpose:
-
-```text
-Demonstrate traffic steering through DIA.
-```
-
----
-
-### RuleB
-
-Destination:
 
 ```text
 208.67.222.222
+→ BB
 ```
 
-Selected Interface:
+Traffic steering was validated through:
+
+- SD-WAN rule counters
+- FortiGate traffic logs
+- Successful Internet connectivity tests
+
+### Automatic Failover
+
+WAN failover was tested by intentionally disconnecting ISP connectivity.
+
+Results:
 
 ```text
-ISP-BB
-```
+Preferred ISP Failure
+        ↓
+Traffic automatically migrated
+to the remaining ISP.
 
-Purpose:
-
-```text
-Demonstrate traffic steering through BB.
+Preferred ISP Restored
+        ↓
+Traffic automatically returned
+to the preferred path.
 ```
 
 ---
 
-## SD-WAN Validation
+## Technologies Implemented
 
-Validation was performed using:
+### Routing
 
-- FortiGate SD-WAN Rule Counters
+- OSPF
+- EIGRP
+- iBGP
+- eBGP
+- Route Reflection
+
+### Internet Services
+
+- NAT
+- PAT
+- Dual ISP Connectivity
+
+### Security
+
+- ACLs
+- SSH
+- FortiGate Firewall Policies
+
+### High Availability
+
+- FortiGate HA
+
+### WAN Optimization
+
+- SD-WAN
 - Performance SLA Monitoring
-- Traffic Logs
-- NAT Translation Verification
+- Traffic Steering
+- Automatic Failover
 
-Traffic logs confirmed:
+### Management
 
-```text
-9.9.9.9
-→ ISP-DIA
-
-208.67.222.222
-→ ISP-BB
-```
+- Loopback-Based Management
+- Secure Administrative Access
+- Management Plane Protection
 
 ---
 
-# Automatic WAN Failover
+## Project Outcome
 
-Automatic failover was validated by intentionally disconnecting WAN connectivity.
+The completed environment successfully demonstrates:
 
-### Failure Scenario
+- Multi-site enterprise networking
+- Service provider WAN architecture
+- Dynamic routing
+- Secure Internet access
+- Management plane security
+- Firewall high availability
+- Dual ISP Internet resiliency
+- SD-WAN traffic engineering
+- Automatic WAN failover and recovery
+
+The final design combines enterprise networking, service provider routing, network security, and modern WAN optimization technologies into a single integrated lab environment.
